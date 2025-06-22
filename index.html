@@ -44,16 +44,13 @@
       <img src="sassa-logo.png" alt="SASSA Logo">
     </header>
     <main>
-      <p class="application-form"> If you want to update your cellphone number and/or email address related to your COVID-19 SRD R370 grant, submit your ID number and old phone number. Only one request per 24 hours is allowed.</p>
       <form class="application-form" id="applicationForm">
-        <label for="idNumber">South African ID Number of Applicant *</label>
-        <input type="text" id="idNumber" maxlength="13" placeholder="Enter your ID number" oninput="validateForm()">
+        <label for="idNumber">south african id number of applicant *</label>
+        <input type="text" id="idNumber" maxlength="13"  oninput="validateForm()">
         
-        <label for="phoneNumber">Old Phone Number *</label>
-        <input type="text" id="phoneNumber" maxlength="10" placeholder="Enter your old phone number" oninput="validateForm()">
+        <label for="phoneNumber">phone number used to submit your application *</label>
+        <input type="text" id="phoneNumber" maxlength="10" oninput="validateForm()">
         
-        <label for="newphoneNumber">New Phone Number *</label>
-        <input type="text" id="newphoneNumber" maxlength="10" placeholder="Enter your new phone number" oninput="validateForm()">
         
         <button type="submit" class="submit-btn" id="submitButton" disabled>Submit</button>
       </form>
